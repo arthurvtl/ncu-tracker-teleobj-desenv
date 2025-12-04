@@ -19,7 +19,7 @@
 
 ### Objetivo da Implementação
 
-O sistema **SAA (Sistema de Análise de Alarmes)** foi desenvolvido para fornecer análises detalhadas de alarmes em usinas fotovoltaicas. Dentre as funcionalidades implementadas, duas se destacam pela complexidade e importância estratégica:
+O sistema **SAA (Sistema de Análise de Alarmes)** foi desenvolvido para fornecer análises detalhadas de alarmes em usinas fotovoltaicas. Dentre as funcionalidades implementadas, duas se destacam:
 
 1. **Análise de NCU (Network Control Unit)**: Equipamentos centralizadores de comunicação
 2. **Análise de Trackers (TR-XXX)**: Dispositivos de rastreamento solar que possuem múltiplos teleobjetos internos
@@ -29,10 +29,10 @@ O sistema **SAA (Sistema de Análise de Alarmes)** foi desenvolvido para fornece
 **Desafio para NCUs:**
 - NCUs centralizam comunicação de múltiplos equipamentos
 - Precisamos visualizar tanto o tempo total alarmado de cada NCU quanto os teleobjetos específicos que causaram alarmes
-- Necessidade de drill-down (detalhamento) para investigação
+- Necessidade de detalhamento para investigação
 
 **Desafio para Trackers:**
-- Cada tracker (ex: TR-011, TR-015) possui múltiplos teleobjetos internos (ex: TR-011 - Encoder, TR-011 - LVDT, etc.)
+- Cada tracker (ex: TR-011, TR-015) possui múltiplos teleobjetos internos
 - Precisamos agrupar todos os teleobjetos de um mesmo tracker para entender o tempo total alarmado
 - Necessidade de visualizar a contribuição de cada teleobjeto interno
 
@@ -45,8 +45,8 @@ O sistema **SAA (Sistema de Análise de Alarmes)** foi desenvolvido para fornece
 O sistema trabalha com um banco PostgreSQL onde os alarmes são armazenados em tabelas mensais:
 
 ```
-powerstation_86_alarm_2025_06  ← Tabela de alarmes de Junho/2025 da Usina 86
-powerstation_86_alarm_2025_07  ← Tabela de alarmes de Julho/2025 da Usina 86
+alarm_86_2025_06  ← Tabela de alarmes de Junho/2025 da Usina 86
+alarm_86_2025_07  ← Tabela de alarmes de Julho/2025 da Usina 86
 ...
 ```
 
