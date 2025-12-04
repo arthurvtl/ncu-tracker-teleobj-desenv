@@ -21,13 +21,13 @@
 
 O sistema **SAA (Sistema de Análise de Alarmes)** foi desenvolvido para fornecer análises detalhadas de alarmes em usinas fotovoltaicas. Dentre as funcionalidades implementadas, duas se destacam:
 
-1. **Análise de NCU (Network Control Unit)**: Equipamentos centralizadores de comunicação
+1. **Análise de NCU (Network Control Unit)**: Equipamentos centralizadores de [Falha]
 2. **Análise de Trackers (TR-XXX)**: Dispositivos de rastreamento solar que possuem múltiplos teleobjetos internos
 
 ### Problema Resolvido
 
 **Desafio para NCUs:**
-- NCUs centralizam comunicação de múltiplos equipamentos
+- NCUs centralizam [Falha] de múltiplos equipamentos
 - Precisamos visualizar tanto o tempo total alarmado de cada NCU quanto os teleobjetos específicos que causaram alarmes
 - Necessidade de detalhamento para investigação
 
@@ -246,7 +246,7 @@ Para uma NCU específica, listar todos os teleobjetos que geraram alarmes e seus
 
 ```sql
 SELECT
-    -- Nome do teleobjeto (ex: "Comunicação Perdida", "Temperatura Alta")
+    -- Nome do teleobjeto (ex: "[Falha] Perdida", "Temperatura Alta")
     toc.name AS teleobjeto_nome,
     
     -- Quantidade de vezes que este teleobjeto alarmou
@@ -322,11 +322,11 @@ Agrupar todos os teleobjetos que pertencem ao mesmo tracker (ex: TR-011) e somar
 
 Os teleobjetos de trackers seguem este padrão de nomenclatura:
 ```
-TR-011 - Encoder
-TR-011 - LVDT
-TR-011 - Comunicação
-TR-015 - Encoder
-TR-015 - LVDT
+TR-011 - [Falha]
+TR-011 - [Falha]
+TR-011 - [Falha]
+TR-015 - [Falha]
+TR-015 - [Falha]
 ...
 ```
 
@@ -338,7 +338,7 @@ Queremos agrupar por: `TR-011`, `TR-015`, etc.
 SELECT
     -- FUNÇÃO ESPECIAL: SPLIT_PART
     -- Divide a string pelo delimitador ' - ' e pega a primeira parte
-    -- Exemplo: "TR-011 - Encoder" → "TR-011"
+    -- Exemplo: "TR-011 - [Falha]" → "TR-011"
     SPLIT_PART(toc.name, ' - ', 1) AS tracker_code,
     
     -- Quantidade total de alarmes de TODOS os teleobjetos deste tracker
@@ -373,9 +373,9 @@ WHERE
 
 -- AGRUPAMENTO ESPECIAL: Agrupar pela primeira parte do nome (tracker_code)
 -- Isto faz com que:
---   "TR-011 - Encoder"     ]
---   "TR-011 - LVDT"        ] → Sejam agrupados como "TR-011"
---   "TR-011 - Comunicação" ]
+--   "TR-011 - [Falha]"     ]
+--   "TR-011 - [Falha]"        ] → Sejam agrupados como "TR-011"
+--   "TR-011 - [Falha]" ]
 GROUP BY tracker_code
 
 -- Ordenar pelos trackers que mais alarmaram
@@ -401,15 +401,15 @@ SPLIT_PART(string, delimiter, position)
 
 ```sql
 -- Exemplo 1
-SELECT SPLIT_PART('TR-011 - Encoder', ' - ', 1);
+SELECT SPLIT_PART('TR-011 - [Falha]', ' - ', 1);
 -- Resultado: 'TR-011'
 
 -- Exemplo 2
-SELECT SPLIT_PART('TR-011 - Encoder', ' - ', 2);
--- Resultado: 'Encoder'
+SELECT SPLIT_PART('TR-011 - [Falha]', ' - ', 2);
+-- Resultado: 'Falha'
 
 -- Exemplo 3
-SELECT SPLIT_PART('TR-015 - LVDT', ' - ', 1);
+SELECT SPLIT_PART('TR-015 - [Falha]', ' - ', 1);
 -- Resultado: 'TR-015'
 ```
 
@@ -417,9 +417,9 @@ SELECT SPLIT_PART('TR-015 - LVDT', ' - ', 1);
 
 Sem o SPLIT_PART, teríamos resultados separados:
 ```
-TR-011 - Encoder      → 45 min
-TR-011 - LVDT         → 30 min
-TR-011 - Comunicação  → 25 min
+TR-011 - [Falha]      → 45 min
+TR-011 - [Falha]         → 30 min
+TR-011 - [Falha]  → 25 min
 ```
 
 Com o SPLIT_PART, agregamos tudo:
@@ -440,7 +440,7 @@ Para um tracker específico (ex: TR-011), listar todos os seus teleobjetos inter
 
 ```sql
 SELECT
-    -- Nome completo do teleobjeto (ex: "TR-011 - Encoder")
+    -- Nome completo do teleobjeto (ex: "TR-011 - Falha")
     toc.name AS teleobjeto_nome,
     
     -- Quantidade de alarmes deste teleobjeto específico
@@ -495,10 +495,10 @@ tracker_pattern = f"{tracker_code} - %"
 # tracker_pattern = "TR-011 - %"
 # 
 # Isto irá capturar:
-# ✅ "TR-011 - Encoder"
-# ✅ "TR-011 - LVDT"
-# ✅ "TR-011 - Comunicação"
-# ❌ "TR-015 - Encoder"  (não captura, código diferente)
+# ✅ "TR-011 - [Falha]"
+# ✅ "TR-011 - [Falha]"
+# ✅ "TR-011 - [Falha]"
+# ❌ "TR-015 - [Falha]"  (não captura, código diferente)
 # ❌ "TR-011"  (não captura, falta o " - ")
 ```
 
@@ -842,7 +842,7 @@ sequenceDiagram
     Q->>DB: SELECT com LIKE 'TR-011 - %'
     DB-->>Q: Retorna teleobjetos
     
-    Note over DB: TR-011 - Encoder: 500 min<br/>TR-011 - LVDT: 400 min<br/>TR-011 - Comunicação: 334 min
+    Note over DB: TR-011 - [Falha]: 500 min<br/>TR-011 - [Falha]: 400 min<br/>TR-011 - [Falha]: 334 min
     
     Q-->>App: DataFrame com teleobjetos
     App->>V: criar_grafico_barras_horizontais()
@@ -876,8 +876,8 @@ id  | tele_object_config_id
 Tabela: tele_object_config
 id   | name
 -----|--------------------
-2001 | TR-011 - Encoder
-2002 | TR-011 - LVDT
+2001 | TR-011 - [Falha]
+2002 | TR-011 - [Falha]
 ```
 
 #### Aplicação da Query `obter_alarmes_trackers()`
@@ -886,9 +886,9 @@ id   | name
 ```
 id  | tele_object_config_name  | duration_minutes
 ----|--------------------------|------------------
-1   | TR-011 - Encoder         | 150.0
-2   | TR-011 - LVDT            | 45.0
-3   | TR-011 - Encoder         | 75.0
+1   | TR-011 - [Falha]         | 150.0
+2   | TR-011 - [Falha]            | 45.0
+3   | TR-011 - [Falha]         | 75.0
 ```
 
 **Passo 2: SPLIT_PART**
